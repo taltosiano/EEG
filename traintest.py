@@ -15,8 +15,21 @@ while maintaining 32-bit (float32) precision for some critical parts of the mode
 '''
 from torch.cuda.amp import autocast,GradScaler
 
+# Import average meter utility from the utilities module
 AverageMeter = util.AverageMeter
 def train(eeg_model, train_loader, test_loader, args):
+    """
+    Trains the EEG model using the provided training and validation loaders.
+
+    Args:
+        eeg_model (torch.nn.Module): The model to be trained.
+        train_loader (torch.utils.data.DataLoader): DataLoader for the training data.
+        test_loader (torch.utils.data.DataLoader): DataLoader for the validation data.
+        args (argparse.Namespace): Command-line arguments and configuration options.
+
+    Returns:
+        None
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print('running on ' + str(device))
     torch.set_grad_enabled(True)
@@ -37,6 +50,9 @@ def train(eeg_model, train_loader, test_loader, args):
     exp_dir = args.exp_dir
 
     def _save_progress():
+        """
+        Save the training progress to a pickle file.
+        """
         progress.append([epoch, global_step, best_epoch, best_mAP, time.time() - start_time])
         with open("%s/progress.pkl" % exp_dir, "wb") as f:
             pickle.dump(progress, f)
@@ -46,13 +62,15 @@ def train(eeg_model, train_loader, test_loader, args):
         eeg_model = nn.DataParallel(eeg_model)
 
     eeg_model = eeg_model.to(device)
+
     # Set up the optimizer and count model parameters
     trainables = [p for p in eeg_model.parameters() if p.requires_grad]
     print('Total parameter number is : {:.3f} million'.format(sum(p.numel() for p in eeg_model.parameters()) / 1e6))
     print('Total trainable parameter number is : {:.3f} million'.format(sum(p.numel() for p in trainables) / 1e6))
     optimizer = torch.optim.Adam(trainables, args.lr, weight_decay=5e-7, betas=(0.95, 0.999))
-
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, list(range(args.lrscheduler_start, 1000, 5)), gamma=args.lrscheduler_decay, last_epoch=epoch - 1)
+    
+    # Define loss function
     main_metrics = args.metrics
     if args.loss == 'BCE':
         loss_fn = nn.BCELoss()
@@ -86,7 +104,7 @@ def train(eeg_model, train_loader, test_loader, args):
             data_time.update(time.time() - end_time)
             per_sample_data_time.update((time.time() - end_time) / eeg_input.shape[0])
             dnn_start_time = time.time()
-
+            
             # first several steps for warm-up
             if global_step <= 100 and global_step % 50 == 0 and warmup == True:
                 warm_lr = (global_step / 100) * args.lr
