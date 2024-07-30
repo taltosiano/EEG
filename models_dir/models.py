@@ -14,6 +14,15 @@ import json
 
 class EffNetAttention(nn.Module):
     def __init__(self, label_dim=527, b=0, pretrain=True, head_num=4):
+        """
+        Initializes the EffNetAttention model.
+
+        Parameters:
+        - label_dim (int): Number of output labels.
+        - b (int): EfficientNet version (0 to 7).
+        - pretrain (bool): Whether to use a pre-trained EfficientNet model.
+        - head_num (int): Number of attention heads (0 for mean pooling, 1 for single-head attention, >1 for multi-head attention).
+        """
         #This line calls the constructor of the parent class nn.Module
         super(EffNetAttention, self).__init__()
         self.middim = [1280, 1280, 1408, 1536, 1792, 2048, 2304, 2560]
@@ -69,6 +78,13 @@ class EffNetAttention(nn.Module):
 
 class EEG_SVM_Classifier:
     def __init__(self, kernel='linear', C=1.0):
+        """
+        Initializes the EEG_SVM_Classifier.
+
+        Parameters:
+        - kernel (str): SVM kernel type (default is 'linear').
+        - C (float): Regularization parameter for SVM (default is 1.0).
+        """
         self.kernel = kernel
         self.C = C
         self.model = make_pipeline(StandardScaler(), SVC(kernel=self.kernel, C=self.C, random_state=42))
@@ -79,7 +95,7 @@ class EEG_SVM_Classifier:
         y = []
         data_list = [value for key, value in data_json.items()]
         for sample in data_list:
-            features = np.concatenate(sample['eeg_dat'])
+            features = np.concatenate(sample['eeg_dat'])     # Concatenate EEG data features
             X.append(features)
             y.append(sample['label'])
         X = np.array(X)
@@ -87,16 +103,22 @@ class EEG_SVM_Classifier:
         return X, y
 
     def fit(self, train_data):
+        """
+        Trains the SVM model.
+
+        Parameters:
+        - train_data (dict): Dictionary containing training data and labels.
+        """
         X_train, y_train = self.preprocess_data(train_data)
-        self.model.fit(X_train, y_train)
+        self.model.fit(X_train, y_train)    # Fit the model
 
     def evaluate(self, data):
         X, y = self.preprocess_data(data)
-        y_pred = self.model.predict(X)
-        accuracy = accuracy_score(y, y_pred)
+        y_pred = self.model.predict(X)    # Predict using the model
+        accuracy = accuracy_score(y, y_pred)    # Calculate accuracy
         return accuracy
 
     def predict(self, eeg_data):
-        features = np.concatenate(eeg_data).reshape(1, -1)
-        label_encoded = self.model.predict(features)
-        return self.label_encoder.inverse_transform(label_encoded)[0]
+        features = np.concatenate(eeg_data).reshape(1, -1)    # Prepare features
+        label_encoded = self.model.predict(features)        # Predict label
+        return self.label_encoder.inverse_transform(label_encoded)[0]    # Decode label
