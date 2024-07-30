@@ -34,6 +34,7 @@ parser.add_argument("--lrscheduler_decay", type=float, default=0.5, help="the le
 parser.add_argument("--metrics", type=str, default="mAP", help="the main evaluation metrics", choices=["mAP", "acc"])
 parser.add_argument("--warmup", help='if use balance sampling', type=ast.literal_eval, default='True')
 
+# SVM-specific arguments
 parser.add_argument("--kernel", type=str, default="linear", help="kernel type to be used in the algorithm", choices=["linear", 'poly', 'rbf', 'sigmoid'])
 parser.add_argument("--c", type=float, default=1.0, help="Regularization parameter")
 
@@ -47,6 +48,8 @@ args = parser.parse_args()
 #               'mean': args.dataset_mean, 'std': args.dataset_std,
 #               'noise': False}
 ###################### DATA LOADING #######################################
+
+# Create DataLoader instances for training, validation, and evaluation
 train_loader = torch.utils.data.DataLoader(
         dataloader.EEGDataset(args.data_train),
         batch_size=args.batch_size, shuffle=True, num_workers=0, pin_memory=False)
@@ -60,11 +63,12 @@ eval_loader = torch.utils.data.DataLoader(
         batch_size=args.batch_size*2, shuffle=False, num_workers=0, pin_memory=True)
 
 ############################ MODEL IMPORTING ####################################
+
+# Initialize the model based on the selected architecture
 if args.model == 'efficientnet':
     eeg_model = models.EffNetAttention(label_dim=args.n_class, b=args.eff_b, pretrain=args.impretrain, head_num=args.att_head)
 elif args.model == 'svm':
     eeg_model = models.EEG_SVM_Classifier(kernel=args.kernel, C=args.c, gamma='scale')
-
 
 ## save experiment in a directory
 if not bool(args.exp_dir):
@@ -80,6 +84,8 @@ with open("%s/args.pkl" % args.exp_dir, "wb") as f:
     pickle.dump(args, f)
 
 ################ train the model #####################################
+
+# Train the model if using EfficientNet, or fit/evaluate if using SVM
 if args.model == 'efficientnet':
     train(eeg_model, train_loader, val_loader, args)
 elif args.model == 'svm':
