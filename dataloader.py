@@ -35,6 +35,11 @@ class EEGDataset(Dataset):
         self.timem = timem
 
     def compute_eeg_filterbanks(self, eeg_signal):
+        """
+        Compute the filterbank features from the EEG signal using Short-Time Fourier Transform (STFT).
+        :param eeg_signal: The raw EEG signal tensor.
+        :return: The computed power spectrum with dimensions [freq_bins, num_frames].
+        """
         sample_rate = self.samp_rate
         freq_bins = self.freq_bins
         window_length = self.window_length
@@ -61,18 +66,24 @@ class EEGDataset(Dataset):
         return power_spectrum  # [freq_bins, num_frames]
 
     def data2fbank(self, samp_id, ignore_pattern = True):
-
+        """
+        Convert the EEG data of a given sample ID to filterbank features.
+        :param samp_id: Sample ID of the EEG data.
+        :param ignore_pattern: Whether to ignore patterns in the data (optional).
+        :return: The filterbank features with padding/cropping to match the target size.
+        """
         signal = torch.tensor(self.data_json[str(samp_id)]['eeg_dat'])
-        signal = signal - signal.mean()
+        signal = signal - signal.mean()   # Normalize the signal
         signal = torch.transpose(signal, 1, 0)
         fbank = self.compute_eeg_filterbanks(signal)
         fbank = torch.transpose(fbank, 1, 0)
+        
         n_frames = fbank.shape[0]
         target_length = int(self.time_duration*(1/self.samp_rate)*(1000/self.hop_len)) #time_tamps*Ts*(frames_per_second)
         p_t = target_length - n_frames
         p_f = self.freq_bins - fbank.shape[1]
 
-        # cut and pad. input will be: [time_frame=62, freq_bins=64]
+        # the filterbank features to match the target size. input will be: [time_frame=62, freq_bins=64]
         if p_t > 0:
             m = torch.nn.ZeroPad2d((0, 0, 0, p_t))
             fbank = m(fbank)
@@ -86,6 +97,11 @@ class EEGDataset(Dataset):
         return fbank
 
     def __getitem__(self, index):
+        """
+        Retrieve the filterbank features and the corresponding label for a given index.
+        :param index: Index of the sample in the dataset.
+        :return: A tuple of filterbank features and one-hot encoded label.
+        """
         # the output fbank shape is [time_frame_num, frequency_bins], e.g., [1024, 128] + one_hot_vector
         fbank = self.data2fbank(index)
         # SpecAug, not do for eval set
