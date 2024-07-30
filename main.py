@@ -41,12 +41,7 @@ parser.add_argument("--c", type=float, default=1.0, help="Regularization paramet
 
 
 args = parser.parse_args()
-# option to make audio conf with argparse.
-# this will be in main.py
-# audio_conf = {'num_mel_bins': 128, 'target_length': args.target_length, 'freqm': args.freqm,
-#               'timem': args.timem, 'mixup': args.mixup, 'dataset': args.dataset, 'mode': 'train',
-#               'mean': args.dataset_mean, 'std': args.dataset_std,
-#               'noise': False}
+
 ###################### DATA LOADING #######################################
 
 # Create DataLoader instances for training, validation, and evaluation
