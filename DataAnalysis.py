@@ -17,15 +17,17 @@ samples_len_list = []
 hit_list = []
 pattern_list = []
 gap_list = []
+
+# Iterate over each item in the dictionary
 for dict_idx, value in data.items():
-    labels_list.append(value['label'])
-    samples_len_list.append(len(value['eeg_dat']))
+    labels_list.append(value['label'])    # Collect all labels
+    samples_len_list.append(len(value['eeg_dat']))    # Collect lengths of EEG data
     if value['label'] == 'plain_hit':
-        hit_list.append(len(value['eeg_dat']))
+        hit_list.append(len(value['eeg_dat']))    # Collect lengths for 'plain_hit'
     if value['label'] == 'pattern':
-        pattern_list.append(len(value['eeg_dat']))
+        pattern_list.append(len(value['eeg_dat']))    # Collect lengths for 'pattern'
     if value['label'] == 'gap_element':
-        gap_list.append(len(value['eeg_dat']))
+        gap_list.append(len(value['eeg_dat']))     # Collect lengths for 'gap_element'
 
 import collections
 import matplotlib.pyplot as plt
@@ -43,14 +45,17 @@ plt.ylabel('Frequency')
 plt.savefig(os.path.join(results_dir, "label_hist.png"))
 # Show the plot
 #plt.show()
+
 #### samples len:####
 plt.figure()
+# Create custom bin edges for histogram
 custom_bin_edges = range(min(samples_len_list), max(samples_len_list) + 2)
 plt.hist(samples_len_list, bins=custom_bin_edges)
 plt.title('Frequency of Samples len.')
 plt.xlabel('Samples len.')
 plt.ylabel('Frequency')
 plt.savefig(os.path.join(results_dir, "samples_len_hist.png"))
+# Plot histograms for specific categories
 plt.subplot(1, 3, 1)
 custom_bin_edges = range(min(hit_list), max(hit_list) + 2)
 plt.hist(hit_list, bins=custom_bin_edges)
