@@ -11,6 +11,8 @@ marker_data = pd.read_csv('./data/Cerebral Circles_EPOCX_S1_2021.07.10T21.48.59 
 eeg_data = pd.read_csv('./data/Cerebral Circles_EPOCX_S1_2021.07.10T21.48.59 11.00.md.mc.pm.fe.bp.csv', skiprows=1)
 
 # Clean marker data and EEG data by removing preliminary rows
+# We'll start from row 30 because the preceding rows contain initialization data or information irrelevant to the main analysis or model training.
+# It can be seen that these rows do not include any plain_hit or pattern events.
 marker_data = marker_data[30:384]
 eeg_data = eeg_data[6069:18649]
 start_col = eeg_data.columns.get_loc('EEG.RawCq')
