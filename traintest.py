@@ -16,6 +16,8 @@ while maintaining 32-bit (float32) precision for some critical parts of the mode
 from torch.cuda.amp import autocast,GradScaler
 
 # Import average meter utility from the utilities module
+# AverageMeter is a class that allows tracking average values during model training. 
+# We use it to monitor several important metrics such as processing time, sampling time, and loss.
 AverageMeter = util.AverageMeter
 def train(eeg_model, train_loader, test_loader, args):
     """
