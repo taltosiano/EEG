@@ -93,14 +93,19 @@ class EEG_SVM_Classifier:
     def preprocess_data(self, data_json):
         X = []
         y = []
-        data_list = [value for key, value in data_json.items()]
-        for sample in data_list:
-            features = np.concatenate(sample['eeg_dat'])     # Concatenate EEG data features
+        #data_list = [value for key, value in data_json_dict.items()]
+        for i, (eeg_input, labels) in enumerate(train_loader):
+            # if i>10:
+            #     break
+            features = np.concatenate(eeg_input.numpy())   # Concatenate EEG data features
             X.append(features)
-            y.append(sample['label'])
+            if labels[0][0] == 1.0:
+                y.append('gap_element')
+            else: y.append('plain_hit')
         X = np.array(X)
+        X = X.reshape((X.shape[0], -1))
         y = self.label_encoder.fit_transform(y)
-        return X, y
+        return X,y
 
     def fit(self, train_data):
         """
