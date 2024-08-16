@@ -42,7 +42,19 @@ parser.add_argument("--c", type=float, default=1.0, help="Regularization paramet
 
 args = parser.parse_args()
 
+## save experiment in a directory
+if not bool(args.exp_dir):
+    print("exp_dir not specified, automatically naming one...")
+    args.exp_dir = "exp/%s/EEGModel-%s_Optim-%s_LR-%s_Epochs-%s" % (
+        time.strftime("%Y%m%d-%H%M%S"), args.model, args.optim,
+        args.lr, args.n_epochs)
+
 ###################### DATA LOADING #######################################
+
+shuffle = True
+if args.model == 'svm':
+    args.batch_size = 1
+    shuffle = False
 
 # Create DataLoader instances for training, validation, and evaluation
 train_loader = torch.utils.data.DataLoader(
@@ -53,9 +65,15 @@ val_loader = torch.utils.data.DataLoader(
     dataloader.EEGDataset(args.data_val),
     batch_size=args.batch_size, shuffle=False, num_workers=0, pin_memory=True)
 
-eval_loader = torch.utils.data.DataLoader(
-        dataloader.EEGDataset(args.data_eval),
-        batch_size=args.batch_size*2, shuffle=False, num_workers=0, pin_memory=True)
+if args.model != 'svm':
+    eval_loader = torch.utils.data.DataLoader(
+            dataloader.EEGDataset(dataset_json_file=args.data_eval, exp_dir=args.exp_dir),
+            batch_size=args.batch_size*2, shuffle=False, num_workers=0, pin_memory=True)
+else:
+    eval_loader = torch.utils.data.DataLoader(
+        dataloader.EEGDataset(dataset_json_file=args.data_eval, exp_dir=args.exp_dir),
+        batch_size=args.batch_size, shuffle=False, num_workers=0, pin_memory=True)
+
 
 ############################ MODEL IMPORTING ####################################
 
@@ -64,13 +82,6 @@ if args.model == 'efficientnet':
     eeg_model = models.EffNetAttention(label_dim=args.n_class, b=args.eff_b, pretrain=args.impretrain, head_num=args.att_head)
 elif args.model == 'svm':
     eeg_model = models.EEG_SVM_Classifier(kernel=args.kernel, C=args.c, gamma='scale')
-
-## save experiment in a directory
-if not bool(args.exp_dir):
-    print("exp_dir not specified, automatically naming one...")
-    args.exp_dir = "exp/%s/EEGModel-%s_Optim-%s_LR-%s_Epochs-%s" % (
-        time.strftime("%Y%m%d-%H%M%S"), args.model, args.optim,
-        args.lr, args.n_epochs)
 
 print("\nCreating experiment directory: %s" % args.exp_dir)
 if os.path.exists("%s/models" % args.exp_dir) == False:
