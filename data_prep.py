@@ -123,8 +123,3 @@ with open('./data/test.json', 'w') as f:
     json.dump(test_dict, f, indent=4)
 
 print("Data has been split and saved to train.json, val.json, and test.json.")
-
-
-
-
-
