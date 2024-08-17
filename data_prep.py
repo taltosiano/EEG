@@ -39,7 +39,7 @@ while i < marker_data.shape[0]:
         continue
                     
     # Extract duration of the event and store EEG data for this segment
-    duration = marker_data.iloc[i]['duration']
+    duration = marker_data.iloc[i]['duration']   #column B
     data[dict_idx] = {'eeg_dat':[],
                       'label': marker_data.iloc[i]['type']}
     if eeg_idx < eeg_data.shape[0]:
