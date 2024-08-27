@@ -1,12 +1,15 @@
 
 import csv
 import json
+
+import matplotlib.pyplot as plt
 import torchaudio
 import numpy as np
 import torch
 import torch.nn.functional
 from torch.utils.data import Dataset
 import random
+import os
 
 # option to make audio conf with argparse.
 # this will be in main.py
@@ -15,8 +18,8 @@ import random
 #               'mean': args.dataset_mean, 'std': args.dataset_std,
 #               'noise': False}
 class EEGDataset(Dataset):
-    def __init__(self, dataset_json_file, label_num=2, samp_rate=128, window_length=25, hop_len=10, freq_bins=64,
-                 MaxDuration=80, freqm=24, timem=52, audio_conf=None):
+    def __init__(self, dataset_json_file, exp_dir, label_num=2, samp_rate=128, window_length=25, hop_len=10, freq_bins=64,
+                 MaxDuration=80, freqm=24, timem=52, showImages=True, audio_conf=None):
         """
         Dataset that manages audio recordings
         :param dataset_json_file
@@ -33,8 +36,10 @@ class EEGDataset(Dataset):
         self.time_duration = MaxDuration
         self.freqm = freqm
         self.timem = timem
+        self.stft_show = showImages
+        self.exp_dir = exp_dir
 
-    def compute_eeg_filterbanks(self, eeg_signal):
+    def compute_eeg_filterbanks(self, eeg_signal, samp_id):
         """
         Compute the filterbank features from the EEG signal using Short-Time Fourier Transform (STFT).
         :param eeg_signal: The raw EEG signal tensor.
@@ -47,7 +52,7 @@ class EEGDataset(Dataset):
         # Convert window length and hop length from milliseconds to samples
         window_length_samples = int(sample_rate * window_length / 1000)
         hop_length_samples = int(sample_rate * hop_length / 1000)
-
+        label = self.data_json[str(samp_id)]['label']
 
         # Compute the STFT of the signal for each channel
         stft = torch.stft(
@@ -59,8 +64,32 @@ class EEGDataset(Dataset):
             return_complex=False
         )
 
-        # Compute the power spectrum and then average across channels
         power_spectrum = stft.pow(2).sum(-1)  # Sum over the complex dimension to get power
+
+        if self.stft_show:
+            plt.figure(figsize=(10, 4))
+            #F3:2, FC5:3, t7:4, t8:9, fc6:10, F4:11
+            channels_dict = {'FC3':power_spectrum[2], 'FC5':power_spectrum[3], 'T7':power_spectrum[4], 'T8':power_spectrum[9],
+                             'FC6':power_spectrum[10], 'F4':power_spectrum[11]}
+            for i,(cha_name,stft_mat) in enumerate(channels_dict.items()):
+                plt.subplot(2,3, i+1)
+                plt.imshow(stft_mat.numpy(), aspect='auto', origin='lower',
+                           extent=[0, power_spectrum.size(-1), 0, sample_rate / 2])
+                plt.colorbar(format='%+2.0f dB')
+                plt.title(f'{cha_name}')
+                plt.xlabel('Time (frames)')
+                plt.ylabel('Frequency (Hz)')
+            set_name = self.datapath.split('/')[-1].split('.')[0]
+            save_path = os.path.join(self.exp_dir, f'stft_plots/{set_name}/{label}')
+            if not os.path.exists(save_path):
+                os.makedirs(save_path)
+            plt.tight_layout()
+            plt.savefig(os.path.join(save_path, f'stft_channels_{str(samp_id)}.png'))
+
+            plt.close()
+
+
+        # Compute the power spectrum and then average across channels
         power_spectrum = power_spectrum.mean(dim=0)  # Average over the channel dimension
 
         return power_spectrum  # [freq_bins, num_frames]
@@ -73,9 +102,9 @@ class EEGDataset(Dataset):
         :return: The filterbank features with padding/cropping to match the target size.
         """
         signal = torch.tensor(self.data_json[str(samp_id)]['eeg_dat'])
-        signal = signal - signal.mean()   # Normalize the signal
+        signal = signal - signal.mean()  # Normalize the signa
         signal = torch.transpose(signal, 1, 0)
-        fbank = self.compute_eeg_filterbanks(signal)
+        fbank = self.compute_eeg_filterbanks(signal, samp_id)
         fbank = torch.transpose(fbank, 1, 0)
         
         n_frames = fbank.shape[0]

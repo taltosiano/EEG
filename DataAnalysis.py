@@ -20,14 +20,14 @@ gap_list = []
 
 # Iterate over each item in the dictionary
 for dict_idx, value in data.items():
-    labels_list.append(value['label'])    # Collect all labels
-    samples_len_list.append(len(value['eeg_dat']))    # Collect lengths of EEG data
+    labels_list.append(value['label'])  # Collect all labels
+    samples_len_list.append(len(value['eeg_dat']))  # Collect lengths of EEG data
     if value['label'] == 'plain_hit':
-        hit_list.append(len(value['eeg_dat']))    # Collect lengths for 'plain_hit'
+        hit_list.append(len(value['eeg_dat'])) # Collect lengths for 'plain_hit'
     if value['label'] == 'pattern':
-        pattern_list.append(len(value['eeg_dat']))    # Collect lengths for 'pattern'
+        pattern_list.append(len(value['eeg_dat']))  # Collect lengths for 'pattern'
     if value['label'] == 'gap_element':
-        gap_list.append(len(value['eeg_dat']))     # Collect lengths for 'gap_element'
+        gap_list.append(len(value['eeg_dat']))  # Collect lengths for 'gap_element'
 
 import collections
 import matplotlib.pyplot as plt

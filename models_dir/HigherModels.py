@@ -4,19 +4,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 def init_layer(layer):
-    """
-    Initialize the weights and biases of a layer.
-    
-    Parameters:
-    - layer (nn.Module): The layer to be initialized.
-    
-    If the layer is a convolutional layer (i.e., weight tensor has 4 dimensions),
-    weights are initialized using a uniform distribution. If the layer has biases, 
-    they are initialized to zero.
-    
-    If the layer is a linear layer (i.e., weight tensor has 2 dimensions), the weights 
-    are also initialized using a uniform distribution, and biases are set to zero.
-    """
     if layer.weight.ndimension() == 4:
         (n_out, n_in, height, width) = layer.weight.size()
         n = n_in * height * width
@@ -35,15 +22,6 @@ def init_bn(bn):
 
 class Attention(nn.Module):
     def __init__(self, n_in, n_out, att_activation, cla_activation):
-        """
-        Initialize the Attention module.
-        
-        Parameters:
-        - n_in (int): Number of input channels.
-        - n_out (int): Number of output channels.
-        - att_activation (str): Activation function for the attention mechanism.
-        - cla_activation (str): Activation function for the classification layer.
-        """
         super(Attention, self).__init__()
 
         self.att_activation = att_activation
@@ -69,16 +47,7 @@ class Attention(nn.Module):
         init_layer(self.cla)
 
     def activate(self, x, activation):
-        """
-        Apply the specified activation function to the input tensor.
-        
-        Parameters:
-        - x (Tensor): Input tensor.
-        - activation (str): Name of the activation function to apply.
-        
-        Returns:
-        - Tensor: Activated tensor.
-        """
+
         if activation == 'linear':
             return x
 
@@ -92,16 +61,9 @@ class Attention(nn.Module):
             return F.softmax(x, dim=1)
 
     def forward(self, x):
+        """input: (samples_num, freq_bins, time_steps, 1)
         """
-        Forward pass of the Attention module.
-        
-        Parameters:
-        - x (Tensor): Input tensor with shape (samples_num, freq_bins, time_steps, 1).
-        
-        Returns:
-        - x (Tensor): Output tensor after applying attention and classification.
-        - norm_att (Tensor): Normalized attention weights.
-        """
+
         att = self.att(x)
         att = self.activate(att, self.att_activation)
 
@@ -140,16 +102,9 @@ class MeanPooling(nn.Module):
         return torch.sigmoid(x)
 
     def forward(self, x):
+        """input: (samples_num, freq_bins, time_steps, 1)
         """
-        Forward pass of the MeanPooling module.
-        
-        Parameters:
-        - x (Tensor): Input tensor with shape (samples_num, freq_bins, time_steps, 1).
-        
-        Returns:
-        - x (Tensor): Output tensor after applying mean pooling.
-        - list: Empty list (for compatibility with other modules).
-        """
+
         cla = self.cla(x)
         cla = self.activate(cla, self.cla_activation)
 

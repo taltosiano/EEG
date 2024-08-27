@@ -64,14 +64,13 @@ def train(eeg_model, train_loader, test_loader, args):
         eeg_model = nn.DataParallel(eeg_model)
 
     eeg_model = eeg_model.to(device)
-
     # Set up the optimizer and count model parameters
     trainables = [p for p in eeg_model.parameters() if p.requires_grad]
     print('Total parameter number is : {:.3f} million'.format(sum(p.numel() for p in eeg_model.parameters()) / 1e6))
     print('Total trainable parameter number is : {:.3f} million'.format(sum(p.numel() for p in trainables) / 1e6))
     optimizer = torch.optim.Adam(trainables, args.lr, weight_decay=5e-7, betas=(0.95, 0.999))
+
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, list(range(args.lrscheduler_start, 1000, 5)), gamma=args.lrscheduler_decay, last_epoch=epoch - 1)
-    
     # Define loss function
     main_metrics = args.metrics
     if args.loss == 'BCE':
@@ -106,7 +105,7 @@ def train(eeg_model, train_loader, test_loader, args):
             data_time.update(time.time() - end_time)
             per_sample_data_time.update((time.time() - end_time) / eeg_input.shape[0])
             dnn_start_time = time.time()
-            
+
             # first several steps for warm-up
             if global_step <= 100 and global_step % 50 == 0 and warmup == True:
                 warm_lr = (global_step / 100) * args.lr

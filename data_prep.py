@@ -37,9 +37,8 @@ while i < marker_data.shape[0]:
                 marker_data.iloc[i]['type'] != 'plain_hit' and marker_data.iloc[i]['type'] != 'gap_element'):
         i += 1
         continue
-                    
     # Extract duration of the event and store EEG data for this segment
-    duration = marker_data.iloc[i]['duration']   #column B
+    duration = marker_data.iloc[i]['duration'] #column B
     data[dict_idx] = {'eeg_dat':[],
                       'label': marker_data.iloc[i]['type']}
     if eeg_idx < eeg_data.shape[0]:
@@ -59,37 +58,10 @@ from sklearn.model_selection import train_test_split
 keys = list(data.keys())
 random.shuffle(keys)
 
-# Split ratios
-train_ratio = 0.9
-val_ratio = 0.05
-test_ratio = 0.05
-
-# Calculate split sizes based on the total number of samples
-total_samples = len(keys)
-train_size = int(total_samples * train_ratio)
-val_size = int(total_samples * val_ratio)
-test_size = total_samples - train_size - val_size
-
-# Assign 'train', 'val', 'test' labels
-for i, key in enumerate(keys):
-    if i < train_size:
-        data[key]['set'] = 'train'
-    elif i < train_size + val_size:
-        data[key]['set'] = 'val'
-    else:
-        data[key]['set'] = 'test'
-
-# Save the dictionary to a JSON file
-with open('./data/prep_data.json', 'w') as json_file:
-    json.dump(data, json_file, indent=4)
-
-print("Data saved to prep_data.json")
 
 ############ split train,data,test #########
-
-# Optionally remove samples with 'pattern' labels
 def del_pattern(data):
-    new_dict = data
+    new_dict = {}
     for dict_idx, value in data.items():
         if value['label'] != 'pattern':
             new_dict[dict_idx] = value
@@ -98,9 +70,9 @@ def del_pattern(data):
 
 ignore_pattern = True
 if ignore_pattern:
-    del_pattern(data)
+    data = del_pattern(data)
 
-# Convert dictionary to a list of items
+# Convert dictionary to list of items
 data_list = [(key, value) for key, value in data.items()]
 
 # Split the data into train, validation, and test sets
@@ -123,3 +95,8 @@ with open('./data/test.json', 'w') as f:
     json.dump(test_dict, f, indent=4)
 
 print("Data has been split and saved to train.json, val.json, and test.json.")
+
+
+
+
+
