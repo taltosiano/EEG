@@ -1,8 +1,11 @@
 # Machine Learning-Driven Brain-Controlled Robotic One-Hand Exoskeleton
+  
+<img width="1159" alt="image" src="https://github.com/user-attachments/assets/cd47ec79-d559-4374-afa2-8a1e8fd0557f">
+
 ### `Authors`
 - #### Tal Tosiano
 - #### Noam David
-
+  
 ## Overview
 
 Our project, the **Machine Learning-Driven Brain-Controlled Robotic One-Hand Exoskeleton**, integrates advanced machine learning techniques with brain-computer interface (BCI) technology to provide intuitive control of a robotic exoskeleton using EEG signals. The system is composed of three primary components:
