@@ -81,9 +81,15 @@ We utilized the **Emotiv EPOC** EEG headset for data acquisition. This wireless 
 - **Multi-Head Attention**: Following the CNN, we applied a 4-head Multi-Head Attention mechanism to refine the extracted features, improving classification accuracy.
 - **Training**: The model was trained using Cross Entropy loss, optimized with Adam, and a learning rate scheduler to avoid overfitting.
 
+## The results of the trained model
+<img width="241" alt="image" src="https://github.com/user-attachments/assets/5eb435c1-dfcc-49b0-8780-368c8cdfc7c5">
+<img width="238" alt="image" src="https://github.com/user-attachments/assets/50136bf6-ea1c-45ff-87ba-f317eae3aea9">
+
+##### On the left-The plot of loss on train and validation set vs epochs.
+##### On the right-The mAP grade on our validation set every epoch.
+
 
 ## Usage
-
 1. **Train the Model**:
 To train the model, you need to run the main file. This will create an exp directory with the trained model and other outputs. Additionally, it will return the accuracy percentage of the model for correct classification.
    ```bash
@@ -93,3 +99,6 @@ To train the model, you need to run the main file. This will create an exp direc
 After training, you can use the sample.py script to test individual samples.
    ```bash
    python sample.py --own_idx [True] —samp_idx [Number of sample from train.json]
+
+![image](https://github.com/user-attachments/assets/eef7d61c-e49a-4e6a-a31f-44b58d865d22)
+
